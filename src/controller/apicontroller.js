@@ -1,16 +1,23 @@
 const enviarmensaje = require("../service/apiservice");
 const verificar = (req, res) => {
   try {
-    var tokeniabot = "IABOT";
-    var token = req.query["hub.verify_token"];
-    var challenge = req.query["hub.challenge"];
-    if (challenge != null && token != null && token == tokeniabot) {
-      res.send(challenge);
+    const tokeniabot = "IABOT";
+    const token = req.query["hub.verify_token"];
+    const challenge = req.query["hub.challenge"];
+
+    console.log("Verify Token:", token);
+    console.log("Challenge:", challenge);
+
+    if (challenge != null && token != null && token === tokeniabot) {
+      // Directly send back the challenge value
+      return res.status(200).send(challenge);
     } else {
-      res.status(400).send();
+      console.log("Verification failed");
+      return res.status(403).send("Verification failed");
     }
   } catch (e) {
-    res.status(400).send();
+    console.error("Verification error:", e);
+    return res.status(500).send("Internal Server Error");
   }
 };
 const recibir = (req, res) => {
