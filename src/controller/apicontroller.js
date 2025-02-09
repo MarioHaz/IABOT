@@ -29,6 +29,9 @@ const recibir = (req, res) => {
 
     var tipo = objetoMensaje[0]["type"];
 
+    console.log("objetoMensaje", objetoMensaje);
+    console.log("tipo", tipo);
+
     if (tipo == "interactive") {
       var tipointeractivo = objetoMensaje[0]["interactive"]["type"];
 

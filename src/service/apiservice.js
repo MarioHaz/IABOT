@@ -1,269 +1,171 @@
+/*****************************************************
+ * DEPENDENCIES & INITIAL SETUP
+ *****************************************************/
 const https = require("https");
 const OpenAI = require("openai");
 
+// Initialize OpenAI with your API key
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+/*****************************************************
+ * HELPER: GET RESPONSE FROM OPENAI
+ *****************************************************/
+async function getOpenAIResponse(text) {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: `
+          Eres un asistente de atención al cliente para el marketplace "Somos el Hueco".
+          Puedes responder preguntas sobre:
+          - Cómo buscar productos
+          - Cómo vender
+          - Cómo rastrear pedidos
+          - Cómo hablar con un asesor
+          - Políticas de envío y devoluciones
+          - PQRS (peticiones, quejas, reclamos, sugerencias)
+          - Cualquier otra duda del usuario
+
+          Responde de forma clara, concisa y amable.
+          `,
+        },
+        {
+          role: "user",
+          content: text,
+        },
+      ],
+      temperature: 0.7,
+    });
+
+    // Return the text response from the API
+    return (
+      completion.choices[0]?.message?.content ||
+      "Lo siento, no entendí tu consulta."
+    );
+  } catch (error) {
+    console.error("Error en OpenAI:", error);
+    return "Lo siento, hubo un error procesando tu solicitud.";
+  }
+}
+
+/*****************************************************
+ * MAIN FUNCTION: ENVIAR MENSAJE WHATSAPP
+ *****************************************************/
 async function EnviarMensajeWhastpapp(texto, number) {
-  texto = texto.toLowerCase();
+  // Convert the incoming text to lowercase for easier matching
+  const lowerText = texto.toLowerCase();
+  let data;
 
-  if (texto.includes("hola")) {
-    var data = JSON.stringify({
+  /*****************************************************
+   * 1) GREETING (hola, buenas) → LIST MESSAGE
+   *****************************************************/
+  if (lowerText.includes("hola") || lowerText.includes("buenas")) {
+    // Use a LIST message to show multiple options
+    data = JSON.stringify({
       messaging_product: "whatsapp",
       recipient_type: "individual",
-      to: number,
-      type: "text",
-      text: {
-        preview_url: false,
-        body: "🚀 Hola!, Como estás?, Bienvenido.",
-      },
-    });
-  } else if (texto == "1") {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "text",
-      text: {
-        preview_url: false,
-        body: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-      },
-    });
-  } else if (texto == "2") {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      to: number,
-      type: "location",
-      location: {
-        latitude: "-12.067158831865067",
-        longitude: "-77.03377940839486",
-        name: "Estadio Nacional del Perú",
-        address: "Cercado de Lima",
-      },
-    });
-  } else if (texto == "3") {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "document",
-      document: {
-        link: "http://jornadasciberseguridad.riasc.unileon.es/archivos/ejemplo_esp.pdf",
-        caption: "Temario del Curso #001",
-      },
-    });
-  } else if (texto == "4") {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "audio",
-      audio: {
-        link: "https://filesamples.com/samples/audio/mp3/sample1.mp3",
-      },
-    });
-  } else if (texto == "5") {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      to: number,
-      text: {
-        preview_url: true,
-        body: "Introduccion al curso! https://youtu.be/6ULOE2tGlBM",
-      },
-    });
-  } else if (texto == "6") {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "text",
-      text: {
-        preview_url: false,
-        body: "🤝 En breve me pondré en contacto contigo. 🤓",
-      },
-    });
-  } else if (texto == "7") {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "text",
-      text: {
-        preview_url: false,
-        body: "📅 Horario de Atención: Lunes a Viernes. \n🕜 Horario: 9:00 a.m. a 5:00 p.m. 🤓",
-      },
-    });
-  } else if (texto.includes("gracias")) {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "text",
-      text: {
-        preview_url: false,
-        body: "Gracias a ti por contactarme. 🤩",
-      },
-    });
-  } else if (texto.includes("btnsi")) {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "text",
-      text: {
-        preview_url: false,
-        body: "Excelente muchas gracias por registrarse. 🤩",
-      },
-    });
-  } else if (texto.includes("btnno")) {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "text",
-      text: {
-        preview_url: false,
-        body: "Entiendo, muchas gracias. ",
-      },
-    });
-  } else if (texto.includes("btntalvez")) {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "text",
-      text: {
-        preview_url: false,
-        body: "Espero se anime. ",
-      },
-    });
-  } else if (
-    texto.includes("adios") ||
-    texto.includes("bye") ||
-    texto.includes("nos vemos") ||
-    texto.includes("adiós")
-  ) {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "text",
-      text: {
-        preview_url: false,
-        body: "Hasta luego. 🌟",
-      },
-    });
-  } else if (texto.includes("gchatgpt:")) {
-    let parts = texto.split("gchatgpt: ");
-    console.log(parts[1]);
-    console.log(parts[2]);
-
-    const response = await openai.completions.create({
-      model: "text-davinci-002",
-      prompt: parts[1],
-      temperature: 0.5,
-      max_tokens: 200,
-      top_p: 1,
-      frequency_penalty: 0.0,
-      presence_penalty: 0.0,
-    });
-
-    console.log(response.data);
-
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "text",
-      text: {
-        preview_url: false,
-        body: response.data.choices[0].text,
-      },
-    });
-  } else if (texto.includes("boton")) {
-    var data = JSON.stringify({
-      messaging_product: "whatsapp",
       to: number,
       type: "interactive",
       interactive: {
-        type: "button",
+        type: "list",
         body: {
-          text: "¿Confirmas tu registro?",
-        },
-        footer: {
-          text: "Selecciona una de las opciones",
+          text: `¡Hola! 👋 Soy tu asistente de *Somos el Hueco*.\n\n¿En qué puedo ayudarte hoy? Selecciona una opción o escribe tu pregunta.`,
         },
         action: {
-          buttons: [
+          button: "Ver Opciones", // The button text to view the list
+          sections: [
             {
-              type: "reply",
-              reply: {
-                id: "btnsi",
-                title: "Si",
-              },
-            },
-            {
-              type: "reply",
-              reply: {
-                id: "btnno",
-                title: "No",
-              },
-            },
-            {
-              type: "reply",
-              reply: {
-                id: "btntalvez",
-                title: "Tal vez",
-              },
+              title: "Opciones Principales",
+              rows: [
+                {
+                  id: "productos",
+                  title: "Buscar Productos",
+                  description: "Explora nuestro catálogo",
+                },
+                {
+                  id: "vender",
+                  title: "Vender Artículos",
+                  description: "Publica tus productos",
+                },
+                {
+                  id: "rastrear",
+                  title: "Rastrear Pedido",
+                  description: "Sigue el estado de tu compra",
+                },
+                {
+                  id: "soporte",
+                  title: "Soporte",
+                  description: "Ayuda al cliente",
+                },
+                {
+                  id: "asesor",
+                  title: "Hablar con un asesor",
+                  description: "Conecta con un agente humano",
+                },
+                {
+                  id: "pqrs",
+                  title: "PQRS",
+                  description: "Peticiones, quejas, reclamos",
+                },
+              ],
             },
           ],
         },
       },
     });
-  } else if (texto.includes("lista")) {
-    var data = JSON.stringify({
+  } else if (lowerText.includes("productos")) {
+
+  /*****************************************************
+   * 2) USER CHOOSES 'productos'
+   *****************************************************/
+    data = JSON.stringify({
       messaging_product: "whatsapp",
       to: number,
       type: "interactive",
       interactive: {
         type: "list",
         body: {
-          text: "Selecciona alguna opcion",
-        },
-        footer: {
-          text: "Selecciona una de las opciones para poder ayudarte",
+          text: "🔍 ¿Qué tipo de productos buscas?",
         },
         action: {
-          button: "Ver opciones",
+          button: "Categorías",
           sections: [
             {
-              title: "Compra y Venta",
+              title: "Categorías Populares",
               rows: [
                 {
-                  id: "btncomprar",
-                  title: "Comprar",
-                  description: "Compra los mejores articulos de tecnologia",
+                  id: "tecnologia",
+                  title: "Tecnología",
+                  description: "Celulares, laptops, accesorios",
                 },
                 {
-                  id: "btnvender",
-                  title: "Vender",
-                  description: "Vende lo que ya no estes usando",
+                  id: "hogar",
+                  title: "Hogar",
+                  description: "Muebles, decoración, electrodomésticos",
+                },
+                {
+                  id: "moda",
+                  title: "Moda",
+                  description: "Ropa, calzado, accesorios",
                 },
               ],
             },
             {
-              title: "Distribución y Recojo",
+              title: "Más Categorías",
               rows: [
                 {
-                  id: "btndireccion",
-                  title: "Local",
-                  description: "Puedes visitar nuestro local.",
+                  id: "deportes",
+                  title: "Deportes",
+                  description: "Equipos, indumentaria, suplementación",
                 },
                 {
-                  id: "btndistribucion",
-                  title: "Distribución",
-                  description: "La distribución se realiza todos los dias.",
+                  id: "libros",
+                  title: "Libros",
+                  description: "Novedades y bestsellers",
                 },
               ],
             },
@@ -271,41 +173,192 @@ async function EnviarMensajeWhastpapp(texto, number) {
         },
       },
     });
-  } else {
-    var data = JSON.stringify({
+  } else if (lowerText.includes("vender")) {
+
+  /*****************************************************
+   * 3) USER CHOOSES 'vender'
+   *****************************************************/
+    data = JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: number,
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: {
+          text: `📦 Para publicar tu producto:\n1. Visita www.somoselhueco.com/vender\n2. Crea tu anuncio con fotos\n3. ¡Listo! Te contactaremos con compradores interesados.\n\n¿Necesitas ayuda con el proceso?`,
+        },
+        action: {
+          buttons: [
+            {
+              type: "reply",
+              reply: {
+                id: "guia_venta",
+                title: "Sí, envíame la guía",
+              },
+            },
+            {
+              type: "reply",
+              reply: {
+                id: "no_gracias",
+                title: "No, gracias",
+              },
+            },
+          ],
+        },
+      },
+    });
+  } else if (lowerText.includes("rastrear")) {
+
+  /*****************************************************
+   * 4) USER CHOOSES 'rastrear'
+   *****************************************************/
+    data = JSON.stringify({
       messaging_product: "whatsapp",
       recipient_type: "individual",
       to: number,
       type: "text",
       text: {
-        preview_url: false,
-        body: "🚀 Hola, visita mi web anderson-bastidas.com para más información. Escribe *boton* o *lista* para nuevas opciones.\n \n📌Por favor, ingresa un número #️⃣ para recibir información.\n \n1️⃣. Información del Curso. ❔\n2️⃣. Ubicación del local. 📍\n3️⃣. Enviar temario en pdf. 📄\n4️⃣. Audio explicando curso. 🎧\n5️⃣. Video de Introducción. ⏯️\n6️⃣. Hablar con AnderCode. 🙋‍♂️\n7️⃣. Horario de Atención. 🕜",
+        body: "📦 Ingresa tu número de seguimiento (ej: SEH-12345):",
       },
+    });
+  } else if (lowerText.includes("asesor")) {
+
+  /*****************************************************
+   * 5) USER CHOOSES 'asesor'
+   *****************************************************/
+    data = JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: number,
+      type: "text",
+      text: {
+        body: "Claro, enseguida te comunicaré con uno de nuestros asesores. Por favor, espera un momento...",
+      },
+    });
+    // *** Here you could implement logic to notify a human agent or add the user to a queue ***
+  } else if (lowerText.includes("soporte")) {
+
+  /*****************************************************
+   * 6) USER CHOOSES 'soporte'
+   *****************************************************/
+    data = JSON.stringify({
+      messaging_product: "whatsapp",
+      to: number,
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: {
+          text: "¿En qué tipo de soporte necesitas ayuda?",
+        },
+        action: {
+          buttons: [
+            {
+              type: "reply",
+              reply: {
+                id: "envios",
+                title: "Envíos/Devoluciones",
+              },
+            },
+            {
+              type: "reply",
+              reply: {
+                id: "pagos",
+                title: "Pagos",
+              },
+            },
+            {
+              type: "reply",
+              reply: {
+                id: "ordenes",
+                title: "Mis Órdenes",
+              },
+            },
+          ],
+        },
+      },
+    });
+  } else if (lowerText.includes("pqrs")) {
+
+  /*****************************************************
+   * 7) USER CHOOSES 'pqrs'
+   *****************************************************/
+    data = JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: number,
+      type: "text",
+      text: {
+        body: `Para enviar una petición, queja o reclamo, visita nuestro formulario de PQRS en:\n\nhttps://www.somoselhueco.com/pqrs\n\nAllí podrás exponer tu caso para recibir asistencia personalizada.`,
+      },
+    });
+  } else if (lowerText.includes("guia_venta")) {
+
+  /*****************************************************
+   * 8) USER CHOOSES 'guia_venta' (button reply)
+   *****************************************************/
+    data = JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: number,
+      type: "text",
+      text: {
+        body: `Aquí está la guía para vender tus productos:\n\n1. Prepara buenas fotos\n2. Describe tu producto con detalle\n3. Indica precio y método de envío\n4. Publica en www.somoselhueco.com/vender\n\nSi tienes alguna otra duda, ¡estoy aquí para ayudarte!`,
+      },
+    });
+  } else {
+
+  /*****************************************************
+   * 9) ANY OTHER TEXT → Use OpenAI GPT-3.5 for fallback
+   *****************************************************/
+    const aiResponse = await getOpenAIResponse(texto);
+    data = JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: number,
+      type: "text",
+      text: { body: aiResponse },
     });
   }
 
+  /*****************************************************
+   * SEND WHATSAPP MESSAGE VIA WHATSAPP CLOUD API
+   *****************************************************/
   const options = {
     host: "graph.facebook.com",
-    path: "/v17.0/117721278011867/messages",
+    // Adjust the path to your current version if needed
+    path: "/v16.0/541879115678587/messages",
     method: "POST",
-    body: data,
     headers: {
       "Content-Type": "application/json",
-      Authorization:
-        "Bearer EAAMRO41WQm4BO5pfawK1DhBms2OIWvj7OX29ZCNu3aBrPaqHlR1DttgpxZBo8TpiNre2aqVCOA8fAWKmD9uwEP9KqbxtZBc9xn62WeiDK9UfbosU4IgE4biLeank61RqUTjD1SdXRTZB9aZBFCxLpk74b9i06tIZAbL82fu8DoECLUv5ZBTY935HSzPwrlN0hEVjaN91fZCnA0uhZAjcpVS6vuogPQwew5oOE1TIZD",
+      Authorization: `Bearer ${process.env.WHATSAPP_API_KEY}`,
     },
   };
 
   const req = https.request(options, (res) => {
-    res.on("data", (d) => {
-      process.stdout.write(d);
+    let response = "";
+
+    res.on("data", (chunk) => {
+      response += chunk;
+    });
+
+    res.on("end", () => {
+      console.log("WhatsApp API Response:", response);
     });
   });
 
+  req.on("error", (err) => {
+    console.error("Error sending WhatsApp message:", err);
+  });
+
+  // Write the payload (data) to the request
   req.write(data);
   req.end();
 }
 
+/*****************************************************
+ * EXPORT THE FUNCTION
+ *****************************************************/
 module.exports = {
   EnviarMensajeWhastpapp,
 };
