@@ -1,0 +1,7 @@
+# Archivos del sistema
+.DS_Store
+.env
+.cache
+.idea/
+.vscode/
+node_modules/
