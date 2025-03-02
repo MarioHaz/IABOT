@@ -1,12 +1,10 @@
 const enviarmensaje = require("../service/apiservice");
+
 const verificar = (req, res) => {
   try {
     const tokeniabot = "IABOT";
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
-
-    console.log("Verify Token:", token);
-    console.log("Challenge:", challenge);
 
     if (challenge != null && token != null && token === tokeniabot) {
       // Directly send back the challenge value
@@ -20,45 +18,46 @@ const verificar = (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 };
+
 const recibir = (req, res) => {
   try {
-    var entry = req.body["entry"][0];
-    var changes = entry["changes"][0];
-    var value = changes["value"];
-    var objetoMensaje = value["messages"];
+    const entry = req.body["entry"][0];
+    const changes = entry["changes"][0];
+    const value = changes["value"];
+    const objetoMensaje = value["messages"];
 
-    var tipo = objetoMensaje[0]["type"];
-
-    console.log("objetoMensaje", objetoMensaje);
-    console.log("tipo", tipo);
-
-    if (tipo == "interactive") {
-      var tipointeractivo = objetoMensaje[0]["interactive"]["type"];
-
-      if (tipointeractivo == "button_reply") {
-        var texto = objetoMensaje[0]["interactive"]["button_reply"]["id"];
-        var numero = objetoMensaje[0]["from"];
-
-        enviarmensaje.EnviarMensajeWhastpapp(texto, numero);
-      } else if (tipointeractivo == "list_reply") {
-        var texto = objetoMensaje[0]["interactive"]["list_reply"]["id"];
-        var numero = objetoMensaje[0]["from"];
-
-        console.log(texto);
-      }
+    if (!objetoMensaje) {
+      return res.status(200).send("No message");
     }
 
-    if (typeof objetoMensaje != "undefined") {
-      var messages = objetoMensaje[0];
-      var texto = messages["text"]["body"];
-      var numero = messages["from"];
+    // Use the first message in the array
+    const message = objetoMensaje[0];
+    const numero = message["from"];
+    const tipo = message["type"];
 
+    if (tipo === "interactive") {
+      const interactiveType = message["interactive"]["type"];
+
+      if (interactiveType === "button_reply") {
+        const texto = message["interactive"]["button_reply"]["id"];
+        enviarmensaje.EnviarMensajeWhastpapp(texto, numero);
+      } else if (interactiveType === "list_reply") {
+        const texto = message["interactive"]["list_reply"]["id"];
+        // Now calling the function when a list option is selected.
+        enviarmensaje.EnviarMensajeWhastpapp(texto, numero);
+      } else if (interactiveType === "list_reply") {
+        const texto = message["interactive"]["list_reply"]["id"];
+        // Now calling the function when a list option is selected.
+        enviarmensaje.EnviarMensajeWhastpapp(texto, numero);
+      }
+    } else if (tipo === "text") {
+      const texto = message["text"]["body"];
       enviarmensaje.EnviarMensajeWhastpapp(texto, numero);
     }
 
     res.send("EVENT_RECEIVED");
   } catch (e) {
-    /* console.log(e); */
+    console.error("Error processing message:", e);
     res.send("EVENT_RECEIVED");
   }
 };

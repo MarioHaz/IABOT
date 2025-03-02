@@ -63,7 +63,16 @@ async function EnviarMensajeWhastpapp(texto, number) {
   /*****************************************************
    * 1) GREETING (hola, buenas) → LIST MESSAGE
    *****************************************************/
-  if (lowerText.includes("hola") || lowerText.includes("buenas")) {
+  if (
+    lowerText.includes("hola") ||
+    lowerText.includes("buenas") ||
+    lowerText.includes("buen dia") ||
+    lowerText.includes("buenos días") ||
+    lowerText.includes("buenas tardes") ||
+    lowerText.includes("buenas noches") ||
+    lowerText.includes("buena tarde") ||
+    lowerText.includes("que tal")
+  ) {
     // Use a LIST message to show multiple options
     data = JSON.stringify({
       messaging_product: "whatsapp",
@@ -87,11 +96,6 @@ async function EnviarMensajeWhastpapp(texto, number) {
                   description: "Explora nuestro catálogo",
                 },
                 {
-                  id: "vender",
-                  title: "Vender Artículos",
-                  description: "Publica tus productos",
-                },
-                {
                   id: "rastrear",
                   title: "Rastrear Pedido",
                   description: "Sigue el estado de tu compra",
@@ -101,132 +105,89 @@ async function EnviarMensajeWhastpapp(texto, number) {
                   title: "Soporte",
                   description: "Ayuda al cliente",
                 },
-                {
-                  id: "asesor",
-                  title: "Hablar con un asesor",
-                  description: "Conecta con un agente humano",
-                },
-                {
-                  id: "pqrs",
-                  title: "PQRS",
-                  description: "Peticiones, quejas, reclamos",
-                },
+                // Uncomment PQRS if needed:
+                // {
+                //   id: "pqrs",
+                //   title: "PQRS",
+                //   description: "Peticiones, quejas, reclamos",
+                // },
               ],
             },
           ],
         },
       },
     });
-  } else if (lowerText.includes("productos")) {
-
-  /*****************************************************
-   * 2) USER CHOOSES 'productos'
-   *****************************************************/
-    data = JSON.stringify({
-      messaging_product: "whatsapp",
-      to: number,
-      type: "interactive",
-      interactive: {
-        type: "list",
-        body: {
-          text: "🔍 ¿Qué tipo de productos buscas?",
-        },
-        action: {
-          button: "Categorías",
-          sections: [
-            {
-              title: "Categorías Populares",
-              rows: [
-                {
-                  id: "tecnologia",
-                  title: "Tecnología",
-                  description: "Celulares, laptops, accesorios",
-                },
-                {
-                  id: "hogar",
-                  title: "Hogar",
-                  description: "Muebles, decoración, electrodomésticos",
-                },
-                {
-                  id: "moda",
-                  title: "Moda",
-                  description: "Ropa, calzado, accesorios",
-                },
-              ],
-            },
-            {
-              title: "Más Categorías",
-              rows: [
-                {
-                  id: "deportes",
-                  title: "Deportes",
-                  description: "Equipos, indumentaria, suplementación",
-                },
-                {
-                  id: "libros",
-                  title: "Libros",
-                  description: "Novedades y bestsellers",
-                },
-              ],
-            },
-          ],
-        },
-      },
-    });
-  } else if (lowerText.includes("vender")) {
-
-  /*****************************************************
-   * 3) USER CHOOSES 'vender'
-   *****************************************************/
-    data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "interactive",
-      interactive: {
-        type: "button",
-        body: {
-          text: `📦 Para publicar tu producto:\n1. Visita www.somoselhueco.com/vender\n2. Crea tu anuncio con fotos\n3. ¡Listo! Te contactaremos con compradores interesados.\n\n¿Necesitas ayuda con el proceso?`,
-        },
-        action: {
-          buttons: [
-            {
-              type: "reply",
-              reply: {
-                id: "guia_venta",
-                title: "Sí, envíame la guía",
-              },
-            },
-            {
-              type: "reply",
-              reply: {
-                id: "no_gracias",
-                title: "No, gracias",
-              },
-            },
-          ],
-        },
-      },
-    });
-  } else if (lowerText.includes("rastrear")) {
-
-  /*****************************************************
-   * 4) USER CHOOSES 'rastrear'
-   *****************************************************/
+  }
+  // Check specific support options before the generic "soporte" condition
+  else if (lowerText === "soporte_envios") {
+    /*****************************************************
+     * 2) SUPPORT OPTION: Envíos/Devoluciones
+     *****************************************************/
     data = JSON.stringify({
       messaging_product: "whatsapp",
       recipient_type: "individual",
       to: number,
       type: "text",
       text: {
-        body: "📦 Ingresa tu número de seguimiento (ej: SEH-12345):",
+        body: "Para consultas sobre envíos y devoluciones, por favor revisa nuestra política de envíos en https://www.somoselhueco.com/terms o contáctanos para asistencia adicional.",
+      },
+    });
+  } else if (lowerText === "soporte_pagos") {
+    /*****************************************************
+     * 3) SUPPORT OPTION: Pagos
+     *****************************************************/
+    data = JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: number,
+      type: "text",
+      text: {
+        body: "Para soporte en pagos, verifica que tu método de pago esté actualizado o consulta con tu banco. Si el inconveniente persiste, contáctanos.",
+      },
+    });
+  } else if (lowerText === "soporte_ordenes") {
+    /*****************************************************
+     * 4) SUPPORT OPTION: Mis Órdenes
+     *****************************************************/
+    data = JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: number,
+      type: "text",
+      text: {
+        body: "Para consultas sobre tus órdenes, ingresa a tu perfil, selecciona la orden correspondiente y sigue las instrucciones para ver el estado o resolver tus dudas.",
+      },
+    });
+  } else if (lowerText.includes("productos")) {
+    /*****************************************************
+     * 5) USER CHOOSES 'productos'
+     *****************************************************/
+    data = JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: number,
+      type: "text",
+      text: {
+        body: "Para ver nuestros productos, ingresa a www.somoselhueco.com y encuentra los productos en los cuales estás interesado.",
+      },
+    });
+  } else if (lowerText.includes("rastrear")) {
+    /*****************************************************
+     * 6) USER CHOOSES 'rastrear'
+     *****************************************************/
+    data = JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: number,
+      type: "text",
+      text: {
+        body: "📦 Para ver el estado de tu orden, ingresa a tu perfil de usuario, abre la orden que quieres revisar y da click en 'Guia de la orden'.",
       },
     });
   } else if (lowerText.includes("asesor")) {
-
-  /*****************************************************
-   * 5) USER CHOOSES 'asesor'
-   *****************************************************/
+    /*****************************************************
+     * 7) USER CHOOSES 'asesor'
+     *****************************************************/
     data = JSON.stringify({
       messaging_product: "whatsapp",
       recipient_type: "individual",
@@ -236,41 +197,43 @@ async function EnviarMensajeWhastpapp(texto, number) {
         body: "Claro, enseguida te comunicaré con uno de nuestros asesores. Por favor, espera un momento...",
       },
     });
-    // *** Here you could implement logic to notify a human agent or add the user to a queue ***
+    // Here you could implement logic to notify a human agent or add the user to a queue
   } else if (lowerText.includes("soporte")) {
-
-  /*****************************************************
-   * 6) USER CHOOSES 'soporte'
-   *****************************************************/
+    /*****************************************************
+     * 8) USER CHOOSES 'soporte' (generic)
+     * This branch catches messages that mention 'soporte' but do not match the specific support options.
+     *****************************************************/
+    // Send an interactive message to choose the support area
     data = JSON.stringify({
       messaging_product: "whatsapp",
+      recipient_type: "individual",
       to: number,
       type: "interactive",
       interactive: {
         type: "button",
         body: {
-          text: "¿En qué tipo de soporte necesitas ayuda?",
+          text: "¿En qué área necesitas soporte?",
         },
         action: {
           buttons: [
             {
               type: "reply",
               reply: {
-                id: "envios",
+                id: "soporte_envios",
                 title: "Envíos/Devoluciones",
               },
             },
             {
               type: "reply",
               reply: {
-                id: "pagos",
+                id: "soporte_pagos",
                 title: "Pagos",
               },
             },
             {
               type: "reply",
               reply: {
-                id: "ordenes",
+                id: "soporte_ordenes",
                 title: "Mis Órdenes",
               },
             },
@@ -279,38 +242,22 @@ async function EnviarMensajeWhastpapp(texto, number) {
       },
     });
   } else if (lowerText.includes("pqrs")) {
-
-  /*****************************************************
-   * 7) USER CHOOSES 'pqrs'
-   *****************************************************/
+    /*****************************************************
+     * 9) USER CHOOSES 'pqrs'
+     *****************************************************/
     data = JSON.stringify({
       messaging_product: "whatsapp",
       recipient_type: "individual",
       to: number,
       type: "text",
       text: {
-        body: `Para enviar una petición, queja o reclamo, visita nuestro formulario de PQRS en:\n\nhttps://www.somoselhueco.com/pqrs\n\nAllí podrás exponer tu caso para recibir asistencia personalizada.`,
-      },
-    });
-  } else if (lowerText.includes("guia_venta")) {
-
-  /*****************************************************
-   * 8) USER CHOOSES 'guia_venta' (button reply)
-   *****************************************************/
-    data = JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: number,
-      type: "text",
-      text: {
-        body: `Aquí está la guía para vender tus productos:\n\n1. Prepara buenas fotos\n2. Describe tu producto con detalle\n3. Indica precio y método de envío\n4. Publica en www.somoselhueco.com/vender\n\nSi tienes alguna otra duda, ¡estoy aquí para ayudarte!`,
+        body: "Para enviar una petición, queja, reclamo o sugerencia, visita nuestro formulario en https://www.somoselhueco.com/pqrs. Te responderemos a la brevedad.",
       },
     });
   } else {
-
-  /*****************************************************
-   * 9) ANY OTHER TEXT → Use OpenAI GPT-3.5 for fallback
-   *****************************************************/
+    /*****************************************************
+     * 10) ANY OTHER TEXT → Use OpenAI GPT-3.5 for fallback
+     *****************************************************/
     const aiResponse = await getOpenAIResponse(texto);
     data = JSON.stringify({
       messaging_product: "whatsapp",
